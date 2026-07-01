@@ -1,5 +1,3 @@
-# Mechanic_Shop_Api
-# Mechanic Shop API
 
 ## Overview
 This project is a REST API for a mechanic shop built with Flask.
