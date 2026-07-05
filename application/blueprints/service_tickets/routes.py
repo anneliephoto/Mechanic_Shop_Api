@@ -4,7 +4,7 @@ from marshmallow import ValidationError
 from application.blueprints.service_tickets import service_tickets_bp
 from application.blueprints.service_tickets.schemas import service_ticket_schema, service_tickets_schema
 from application.extensions import db
-from application.models import ServiceTicket, Mechanic
+from application.models import Inventory, Mechanic, ServiceTicket
 
 
 @service_tickets_bp.route("", methods=["POST"])
@@ -65,3 +65,74 @@ def remove_mechanic(ticket_id, mechanic_id):
     db.session.commit()
 
     return jsonify({"message": f"Mechanic id {mechanic_id} removed from ticket id {ticket_id}."}), 200
+
+
+@service_tickets_bp.route("/<int:ticket_id>/edit", methods=["PUT"])
+def edit_ticket_mechanics(ticket_id):
+    ticket = db.session.get(ServiceTicket, ticket_id)
+
+    if not ticket:
+        return jsonify({"error": "Service ticket not found."}), 404
+
+    payload = request.json or {}
+    add_ids = payload.get("add_ids", [])
+    remove_ids = payload.get("remove_ids", [])
+
+    if not isinstance(add_ids, list) or not isinstance(remove_ids, list):
+        return jsonify({"error": "add_ids and remove_ids must be lists of mechanic IDs."}), 400
+
+    added = []
+    removed = []
+    missing_ids = []
+
+    for mechanic_id in remove_ids:
+        mechanic = db.session.get(Mechanic, mechanic_id)
+        if not mechanic:
+            missing_ids.append(mechanic_id)
+            continue
+        if mechanic in ticket.mechanics:
+            ticket.mechanics.remove(mechanic)
+            removed.append(mechanic_id)
+
+    for mechanic_id in add_ids:
+        mechanic = db.session.get(Mechanic, mechanic_id)
+        if not mechanic:
+            missing_ids.append(mechanic_id)
+            continue
+        if mechanic not in ticket.mechanics:
+            ticket.mechanics.append(mechanic)
+            added.append(mechanic_id)
+
+    db.session.commit()
+
+    return (
+        jsonify(
+            {
+                "message": f"Service ticket id {ticket_id} mechanics updated.",
+                "added_ids": added,
+                "removed_ids": removed,
+                "missing_ids": sorted(set(missing_ids)),
+            }
+        ),
+        200,
+    )
+
+
+@service_tickets_bp.route("/<int:ticket_id>/add-part/<int:part_id>", methods=["PUT"])
+def add_part_to_ticket(ticket_id, part_id):
+    ticket = db.session.get(ServiceTicket, ticket_id)
+    part = db.session.get(Inventory, part_id)
+
+    if not ticket:
+        return jsonify({"error": "Service ticket not found."}), 404
+
+    if not part:
+        return jsonify({"error": "Part not found."}), 404
+
+    if part in ticket.parts:
+        return jsonify({"message": "Part already attached to this ticket."}), 200
+
+    ticket.parts.append(part)
+    db.session.commit()
+
+    return jsonify({"message": f"Part id {part_id} added to ticket id {ticket_id}."}), 200

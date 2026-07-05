@@ -9,6 +9,8 @@ This project is a REST API for a mechanic shop built with Flask.
 - Assign and remove mechanics from service tickets
 - Application Factory Pattern
 - Blueprints
+- Flask-Limiter rate limiting
+- Flask-Caching response caching
 - SQLAlchemy ORM
 - Marshmallow Schemas
 - MySQL Database
