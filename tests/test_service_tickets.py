@@ -17,6 +17,20 @@ class TestServiceTicketsAPI(BaseAPITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(data["VIN"], "3FAHP0HA6AR123456")
 
+    def test_create_service_ticket_missing_field_returns_400(self):
+        response = self.client.post(
+            "/service_tickets",
+            json={
+                "VIN": "3FAHP0HA6AR123456",
+                "service_date": "2026-07-07",
+                "customer_id": self.customer_id,
+            },
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("service_desc", data)
+
     def test_get_service_tickets_returns_list(self):
         response = self.client.get("/service_tickets")
         data = response.get_json()
@@ -33,6 +47,15 @@ class TestServiceTicketsAPI(BaseAPITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", data)
+
+    def test_assign_mechanic_missing_ticket_returns_404(self):
+        response = self.client.put(
+            f"/service_tickets/9999/assign-mechanic/{self.mechanic_two_id}"
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", data)
 
     def test_assign_mechanic_missing_mechanic_returns_404(self):
         response = self.client.put(
@@ -63,6 +86,16 @@ class TestServiceTicketsAPI(BaseAPITestCase):
         self.assertEqual(data["added_ids"], [self.mechanic_two_id])
         self.assertEqual(data["removed_ids"], [self.mechanic_one_id])
 
+    def test_edit_ticket_mechanics_invalid_payload_returns_400(self):
+        response = self.client.put(
+            f"/service_tickets/{self.ticket_one_id}/edit",
+            json={"add_ids": "not-a-list", "remove_ids": []},
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", data)
+
     def test_add_part_to_ticket_success(self):
         response = self.client.put(
             f"/service_tickets/{self.ticket_one_id}/add-part/{self.part_two_id}"
@@ -71,3 +104,12 @@ class TestServiceTicketsAPI(BaseAPITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", data)
+
+    def test_add_part_to_ticket_missing_part_returns_404(self):
+        response = self.client.put(
+            f"/service_tickets/{self.ticket_one_id}/add-part/9999"
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", data)

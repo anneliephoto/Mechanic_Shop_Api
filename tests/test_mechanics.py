@@ -54,12 +54,34 @@ class TestMechanicsAPI(BaseAPITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data["name"], "Alex Torres Updated")
 
+    def test_update_mechanic_not_found_returns_404(self):
+        response = self.client.put(
+            "/mechanics/9999",
+            json={
+                "name": "Ghost Mechanic",
+                "email": "ghost@example.com",
+                "phone": "555-999-0000",
+                "salary": 10.0,
+            },
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", data)
+
     def test_delete_mechanic_success(self):
         response = self.client.delete(f"/mechanics/{self.mechanic_two_id}")
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", data)
+
+    def test_delete_mechanic_not_found_returns_404(self):
+        response = self.client.delete("/mechanics/9999")
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", data)
 
     def test_get_most_active_mechanics_returns_ranked_list(self):
         response = self.client.get("/mechanics/most-active")

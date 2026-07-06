@@ -13,7 +13,17 @@ class TestCustomersAPI(BaseAPITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("token", data)
-        self.assertEqual(decode_token(data["token"]), self.customer.id)
+        self.assertEqual(decode_token(data["token"]), self.customer_id)
+
+    def test_login_customer_invalid_password_returns_401(self):
+        response = self.client.post(
+            "/customers/login",
+            json={"email": self.customer_email, "password": "wrong-password"},
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("error", data)
 
     def test_create_customer_success(self):
         response = self.client.post(
@@ -61,6 +71,20 @@ class TestCustomersAPI(BaseAPITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(data, list)
         self.assertEqual(len(data), 1)
+
+    def test_get_my_tickets_missing_token_returns_401(self):
+        response = self.client.get("/customers/my-tickets")
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("error", data)
+
+    def test_get_customers_invalid_limit_returns_400(self):
+        response = self.client.get("/customers?limit=abc&offset=0")
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", data)
 
     def test_get_customer_forbidden_returns_403(self):
         response = self.client.get(

@@ -21,6 +21,7 @@ paths:
       tags:
         - Customers
       summary: Login a customer and return a JWT token.
+      description: Authenticates a customer using email and password and returns a bearer token.
       operationId: loginCustomer
       parameters:
         - in: body
@@ -47,6 +48,7 @@ paths:
       tags:
         - Customers
       summary: Create a customer account.
+      description: Creates a new customer record with basic account details.
       operationId: createCustomer
       parameters:
         - in: body
@@ -68,6 +70,7 @@ paths:
       tags:
         - Customers
       summary: Get customers with pagination.
+      description: Returns customers with limit and offset metadata for paging through results.
       operationId: getCustomers
       parameters:
         - name: limit
@@ -98,6 +101,7 @@ paths:
       tags:
         - Customers
       summary: Get the authenticated customer's service tickets.
+      description: Returns all service tickets belonging to the customer identified by the bearer token.
       operationId: getMyTickets
       security:
         - bearerAuth: []
@@ -115,6 +119,7 @@ paths:
       tags:
         - Customers
       summary: Get one customer by id.
+      description: Returns one customer account when the authenticated customer id matches the path id.
       operationId: getCustomer
       security:
         - bearerAuth: []
@@ -141,6 +146,7 @@ paths:
       tags:
         - Customers
       summary: Update the authenticated customer's account.
+      description: Updates the authenticated customer account fields for the matching customer id.
       operationId: updateCustomer
       security:
         - bearerAuth: []
@@ -177,6 +183,7 @@ paths:
       tags:
         - Customers
       summary: Delete the authenticated customer's account.
+      description: Deletes the authenticated customer account and related service tickets for that customer.
       operationId: deleteCustomer
       security:
         - bearerAuth: []
@@ -204,6 +211,7 @@ paths:
       tags:
         - Mechanics
       summary: Create a mechanic.
+      description: Creates a mechanic record with contact details and salary.
       operationId: createMechanic
       parameters:
         - in: body
@@ -225,6 +233,7 @@ paths:
       tags:
         - Mechanics
       summary: Get all mechanics.
+      description: Returns the full mechanic list (cached for short-term repeated reads).
       operationId: getMechanics
       responses:
         '200':
@@ -236,6 +245,7 @@ paths:
       tags:
         - Mechanics
       summary: Update a mechanic.
+      description: Replaces mechanic fields for the requested mechanic id.
       operationId: updateMechanic
       parameters:
         - $ref: '#/parameters/MechanicId'
@@ -262,6 +272,7 @@ paths:
       tags:
         - Mechanics
       summary: Delete a mechanic.
+      description: Deletes the mechanic record for the specified mechanic id.
       operationId: deleteMechanic
       parameters:
         - $ref: '#/parameters/MechanicId'
@@ -279,6 +290,7 @@ paths:
       tags:
         - Mechanics
       summary: Get mechanics ranked by ticket count.
+      description: Returns mechanics ordered by number of assigned service tickets.
       operationId: getMostActiveMechanics
       responses:
         '200':
@@ -290,6 +302,7 @@ paths:
       tags:
         - Inventory
       summary: Create an inventory part.
+      description: Creates an inventory part with name and price.
       operationId: createPart
       parameters:
         - in: body
@@ -311,6 +324,7 @@ paths:
       tags:
         - Inventory
       summary: Get all inventory parts.
+      description: Returns every inventory part in the catalog.
       operationId: getParts
       responses:
         '200':
@@ -322,6 +336,7 @@ paths:
       tags:
         - Inventory
       summary: Get one inventory part.
+      description: Returns one inventory part by id.
       operationId: getPart
       parameters:
         - $ref: '#/parameters/PartId'
@@ -338,6 +353,7 @@ paths:
       tags:
         - Inventory
       summary: Update an inventory part.
+      description: Updates name and price for the specified inventory part.
       operationId: updatePart
       parameters:
         - $ref: '#/parameters/PartId'
@@ -364,6 +380,7 @@ paths:
       tags:
         - Inventory
       summary: Delete an inventory part.
+      description: Deletes the specified inventory part by id.
       operationId: deletePart
       parameters:
         - $ref: '#/parameters/PartId'
@@ -381,6 +398,7 @@ paths:
       tags:
         - Service Tickets
       summary: Create a service ticket.
+      description: Creates a service ticket linked to a customer.
       operationId: createServiceTicket
       parameters:
         - in: body
@@ -402,6 +420,7 @@ paths:
       tags:
         - Service Tickets
       summary: Get all service tickets.
+      description: Returns all service tickets across customers.
       operationId: getServiceTickets
       responses:
         '200':
@@ -413,6 +432,7 @@ paths:
       tags:
         - Service Tickets
       summary: Assign a mechanic to a service ticket.
+      description: Adds a mechanic to the ticket's mechanic assignments.
       operationId: assignMechanicToTicket
       parameters:
         - $ref: '#/parameters/TicketId'
@@ -431,6 +451,7 @@ paths:
       tags:
         - Service Tickets
       summary: Remove a mechanic from a service ticket.
+      description: Removes a mechanic from the ticket's mechanic assignments.
       operationId: removeMechanicFromTicket
       parameters:
         - $ref: '#/parameters/TicketId'
@@ -449,6 +470,7 @@ paths:
       tags:
         - Service Tickets
       summary: Add and remove multiple mechanics on a ticket.
+      description: Batch-updates mechanic assignments by add_ids and remove_ids.
       operationId: editTicketMechanics
       parameters:
         - $ref: '#/parameters/TicketId'
@@ -476,6 +498,7 @@ paths:
       tags:
         - Service Tickets
       summary: Attach an inventory part to a ticket.
+      description: Adds an inventory part reference to the specified service ticket.
       operationId: addPartToTicket
       parameters:
         - $ref: '#/parameters/TicketId'

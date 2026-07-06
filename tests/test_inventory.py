@@ -12,6 +12,16 @@ class TestInventoryAPI(BaseAPITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(data["name"], "Air filter")
 
+    def test_create_part_missing_price_returns_400(self):
+        response = self.client.post(
+            "/inventory",
+            json={"name": "Incomplete part"},
+        )
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("price", data)
+
     def test_get_parts_returns_list(self):
         response = self.client.get("/inventory")
         data = response.get_json()
@@ -50,3 +60,10 @@ class TestInventoryAPI(BaseAPITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("message", data)
+
+    def test_delete_part_not_found_returns_404(self):
+        response = self.client.delete("/inventory/9999")
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("error", data)
