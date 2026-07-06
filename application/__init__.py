@@ -2,14 +2,24 @@ from flask import Flask, jsonify
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from application.extensions import cache, db, limiter, ma
-from config import Config
+from config import Config, ProductionConfig
 
 
-def create_app(test_config=None):
+CONFIG_MAP = {
+    "Config": Config,
+    "ProductionConfig": ProductionConfig,
+}
+
+
+def create_app(config_name_or_overrides=None):
     app = Flask(__name__)
     app.config.from_object(Config)
-    if test_config:
-        app.config.update(test_config)
+
+    if isinstance(config_name_or_overrides, str):
+        config_class = CONFIG_MAP.get(config_name_or_overrides, Config)
+        app.config.from_object(config_class)
+    elif isinstance(config_name_or_overrides, dict):
+        app.config.update(config_name_or_overrides)
 
     SWAGGER_URL = "/api/docs"
     API_URL = "/static/swagger.yaml"

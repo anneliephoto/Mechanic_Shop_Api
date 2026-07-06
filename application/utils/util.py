@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta, timezone
 from functools import wraps
+import os
 
 from flask import jsonify, request
 from jose import jwt
 from jose.exceptions import ExpiredSignatureError, JWTError
 
 
-SECRET_KEY = "mechanic-shop-secret-key"
+SECRET_KEY = os.environ.get("SECRET_KEY") or "super secret secrets"
 ALGORITHM = "HS256"
 
 

@@ -1,7 +1,4 @@
-from application import create_app
-
-
-app = create_app()
+from flask_app import app
 
 
 if __name__ == "__main__":
