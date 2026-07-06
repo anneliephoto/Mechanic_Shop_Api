@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, redirect
 from flask_swagger_ui import get_swaggerui_blueprint
 
 from application.extensions import cache, db, limiter, ma
@@ -59,7 +59,7 @@ def create_app(config_name_or_overrides=None):
 
     @app.route("/")
     def home():
-        return "Mechanic Shop API is working!"
+        return redirect("/api/docs")
 
     with app.app_context():
         db.create_all()
