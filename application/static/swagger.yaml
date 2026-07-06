@@ -1,0 +1,923 @@
+swagger: '2.0'
+info:
+  title: Mechanic Shop API
+  description: REST API for managing customers, mechanics, service tickets, inventory, authentication, and advanced queries.
+  version: '1.0.0'
+host: 127.0.0.1:5000
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+paths:
+  /customers/login:
+    post:
+      tags:
+        - Customers
+      summary: Login a customer and return a JWT token.
+      operationId: loginCustomer
+      parameters:
+        - in: body
+          name: credentials
+          required: true
+          description: Email and password for the customer account.
+          schema:
+            $ref: '#/definitions/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded.
+          schema:
+            $ref: '#/definitions/TokenResponse'
+        '400':
+          description: Validation error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Invalid email or password.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /customers:
+    post:
+      tags:
+        - Customers
+      summary: Create a customer account.
+      operationId: createCustomer
+      parameters:
+        - in: body
+          name: customer
+          required: true
+          description: New customer account information.
+          schema:
+            $ref: '#/definitions/CustomerCreateRequest'
+      responses:
+        '201':
+          description: Customer created.
+          schema:
+            $ref: '#/definitions/CustomerResponse'
+        '400':
+          description: Validation error or duplicate email.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      tags:
+        - Customers
+      summary: Get customers with pagination.
+      operationId: getCustomers
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of customers to return.
+          type: integer
+          format: int32
+          default: 10
+        - name: offset
+          in: query
+          required: false
+          description: Number of customers to skip before returning results.
+          type: integer
+          format: int32
+          default: 0
+      responses:
+        '200':
+          description: Customer list.
+          schema:
+            $ref: '#/definitions/CustomerListResponse'
+        '400':
+          description: Invalid pagination values.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /customers/my-tickets:
+    get:
+      tags:
+        - Customers
+      summary: Get the authenticated customer's service tickets.
+      operationId: getMyTickets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: The authenticated customer's tickets.
+          schema:
+            $ref: '#/definitions/ServiceTicketListResponse'
+        '401':
+          description: Missing or invalid token.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /customers/{customer_id}:
+    get:
+      tags:
+        - Customers
+      summary: Get one customer by id.
+      operationId: getCustomer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/parameters/CustomerId'
+      responses:
+        '200':
+          description: Customer found.
+          schema:
+            $ref: '#/definitions/CustomerResponse'
+        '401':
+          description: Missing or invalid token.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden for another customer's account.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Customer not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    put:
+      tags:
+        - Customers
+      summary: Update the authenticated customer's account.
+      operationId: updateCustomer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/parameters/CustomerId'
+        - in: body
+          name: customer
+          required: true
+          description: Updated customer account information.
+          schema:
+            $ref: '#/definitions/CustomerCreateRequest'
+      responses:
+        '200':
+          description: Customer updated.
+          schema:
+            $ref: '#/definitions/CustomerResponse'
+        '400':
+          description: Validation error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Missing or invalid token.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden for another customer's account.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Customer not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    delete:
+      tags:
+        - Customers
+      summary: Delete the authenticated customer's account.
+      operationId: deleteCustomer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/parameters/CustomerId'
+      responses:
+        '200':
+          description: Customer deleted.
+          schema:
+            $ref: '#/definitions/MessageResponse'
+        '401':
+          description: Missing or invalid token.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden for another customer's account.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Customer not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /mechanics:
+    post:
+      tags:
+        - Mechanics
+      summary: Create a mechanic.
+      operationId: createMechanic
+      parameters:
+        - in: body
+          name: mechanic
+          required: true
+          description: New mechanic information.
+          schema:
+            $ref: '#/definitions/MechanicCreateRequest'
+      responses:
+        '201':
+          description: Mechanic created.
+          schema:
+            $ref: '#/definitions/MechanicResponse'
+        '400':
+          description: Validation error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      tags:
+        - Mechanics
+      summary: Get all mechanics.
+      operationId: getMechanics
+      responses:
+        '200':
+          description: Mechanic list.
+          schema:
+            $ref: '#/definitions/MechanicListResponse'
+  /mechanics/{mechanic_id}:
+    put:
+      tags:
+        - Mechanics
+      summary: Update a mechanic.
+      operationId: updateMechanic
+      parameters:
+        - $ref: '#/parameters/MechanicId'
+        - in: body
+          name: mechanic
+          required: true
+          description: Updated mechanic information.
+          schema:
+            $ref: '#/definitions/MechanicCreateRequest'
+      responses:
+        '200':
+          description: Mechanic updated.
+          schema:
+            $ref: '#/definitions/MechanicResponse'
+        '400':
+          description: Validation error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Mechanic not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    delete:
+      tags:
+        - Mechanics
+      summary: Delete a mechanic.
+      operationId: deleteMechanic
+      parameters:
+        - $ref: '#/parameters/MechanicId'
+      responses:
+        '200':
+          description: Mechanic deleted.
+          schema:
+            $ref: '#/definitions/MessageResponse'
+        '404':
+          description: Mechanic not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /mechanics/most-active:
+    get:
+      tags:
+        - Mechanics
+      summary: Get mechanics ranked by ticket count.
+      operationId: getMostActiveMechanics
+      responses:
+        '200':
+          description: Ranked mechanic list.
+          schema:
+            $ref: '#/definitions/MechanicRankingListResponse'
+  /inventory:
+    post:
+      tags:
+        - Inventory
+      summary: Create an inventory part.
+      operationId: createPart
+      parameters:
+        - in: body
+          name: part
+          required: true
+          description: New inventory item information.
+          schema:
+            $ref: '#/definitions/InventoryCreateRequest'
+      responses:
+        '201':
+          description: Part created.
+          schema:
+            $ref: '#/definitions/InventoryResponse'
+        '400':
+          description: Validation error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      tags:
+        - Inventory
+      summary: Get all inventory parts.
+      operationId: getParts
+      responses:
+        '200':
+          description: Inventory list.
+          schema:
+            $ref: '#/definitions/InventoryListResponse'
+  /inventory/{part_id}:
+    get:
+      tags:
+        - Inventory
+      summary: Get one inventory part.
+      operationId: getPart
+      parameters:
+        - $ref: '#/parameters/PartId'
+      responses:
+        '200':
+          description: Part found.
+          schema:
+            $ref: '#/definitions/InventoryResponse'
+        '404':
+          description: Part not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    put:
+      tags:
+        - Inventory
+      summary: Update an inventory part.
+      operationId: updatePart
+      parameters:
+        - $ref: '#/parameters/PartId'
+        - in: body
+          name: part
+          required: true
+          description: Updated inventory item information.
+          schema:
+            $ref: '#/definitions/InventoryCreateRequest'
+      responses:
+        '200':
+          description: Part updated.
+          schema:
+            $ref: '#/definitions/InventoryResponse'
+        '400':
+          description: Validation error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Part not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    delete:
+      tags:
+        - Inventory
+      summary: Delete an inventory part.
+      operationId: deletePart
+      parameters:
+        - $ref: '#/parameters/PartId'
+      responses:
+        '200':
+          description: Part deleted.
+          schema:
+            $ref: '#/definitions/MessageResponse'
+        '404':
+          description: Part not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /service_tickets:
+    post:
+      tags:
+        - Service Tickets
+      summary: Create a service ticket.
+      operationId: createServiceTicket
+      parameters:
+        - in: body
+          name: serviceTicket
+          required: true
+          description: Service ticket data.
+          schema:
+            $ref: '#/definitions/ServiceTicketCreateRequest'
+      responses:
+        '201':
+          description: Service ticket created.
+          schema:
+            $ref: '#/definitions/ServiceTicketResponse'
+        '400':
+          description: Validation error.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+    get:
+      tags:
+        - Service Tickets
+      summary: Get all service tickets.
+      operationId: getServiceTickets
+      responses:
+        '200':
+          description: Service ticket list.
+          schema:
+            $ref: '#/definitions/ServiceTicketListResponse'
+  /service_tickets/{ticket_id}/assign-mechanic/{mechanic_id}:
+    put:
+      tags:
+        - Service Tickets
+      summary: Assign a mechanic to a service ticket.
+      operationId: assignMechanicToTicket
+      parameters:
+        - $ref: '#/parameters/TicketId'
+        - $ref: '#/parameters/MechanicId'
+      responses:
+        '200':
+          description: Mechanic assigned or already assigned.
+          schema:
+            $ref: '#/definitions/MessageResponse'
+        '404':
+          description: Ticket or mechanic not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /service_tickets/{ticket_id}/remove-mechanic/{mechanic_id}:
+    put:
+      tags:
+        - Service Tickets
+      summary: Remove a mechanic from a service ticket.
+      operationId: removeMechanicFromTicket
+      parameters:
+        - $ref: '#/parameters/TicketId'
+        - $ref: '#/parameters/MechanicId'
+      responses:
+        '200':
+          description: Mechanic removed or already absent.
+          schema:
+            $ref: '#/definitions/MessageResponse'
+        '404':
+          description: Ticket or mechanic not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /service_tickets/{ticket_id}/edit:
+    put:
+      tags:
+        - Service Tickets
+      summary: Add and remove multiple mechanics on a ticket.
+      operationId: editTicketMechanics
+      parameters:
+        - $ref: '#/parameters/TicketId'
+        - in: body
+          name: mechanicChanges
+          required: true
+          description: Mechanic IDs to add and remove from the ticket.
+          schema:
+            $ref: '#/definitions/TicketMechanicEditRequest'
+      responses:
+        '200':
+          description: Ticket mechanics updated.
+          schema:
+            $ref: '#/definitions/TicketMechanicEditResponse'
+        '400':
+          description: Invalid request body.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Ticket not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  /service_tickets/{ticket_id}/add-part/{part_id}:
+    put:
+      tags:
+        - Service Tickets
+      summary: Attach an inventory part to a ticket.
+      operationId: addPartToTicket
+      parameters:
+        - $ref: '#/parameters/TicketId'
+        - $ref: '#/parameters/PartId'
+      responses:
+        '200':
+          description: Part attached or already attached.
+          schema:
+            $ref: '#/definitions/MessageResponse'
+        '404':
+          description: Ticket or part not found.
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+parameters:
+  CustomerId:
+    name: customer_id
+    in: path
+    required: true
+    description: Customer id.
+    type: integer
+    format: int32
+  MechanicId:
+    name: mechanic_id
+    in: path
+    required: true
+    description: Mechanic id.
+    type: integer
+    format: int32
+  PartId:
+    name: part_id
+    in: path
+    required: true
+    description: Inventory part id.
+    type: integer
+    format: int32
+  TicketId:
+    name: ticket_id
+    in: path
+    required: true
+    description: Service ticket id.
+    type: integer
+    format: int32
+definitions:
+  ErrorResponse:
+    type: object
+    additionalProperties: true
+    properties:
+      error:
+        type: string
+    example:
+      error: Customer not found.
+  MessageResponse:
+    type: object
+    properties:
+      message:
+        type: string
+    example:
+      message: Customer id 1 successfully deleted.
+  TokenResponse:
+    type: object
+    properties:
+      token:
+        type: string
+    example:
+      token: eyJhbGciOi...
+  LoginRequest:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        format: email
+        example: customer@example.com
+      password:
+        type: string
+        example: password123
+    example:
+      email: customer@example.com
+      password: password123
+  CustomerCreateRequest:
+    type: object
+    required:
+      - name
+      - email
+      - phone
+      - password
+    properties:
+      name:
+        type: string
+        example: Jamie Rivera
+      email:
+        type: string
+        format: email
+        example: jamie@example.com
+      phone:
+        type: string
+        example: '555-123-4567'
+      password:
+        type: string
+        example: password123
+    example:
+      name: Jamie Rivera
+      email: jamie@example.com
+      phone: '555-123-4567'
+      password: password123
+  CustomerResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+        example: 1
+      name:
+        type: string
+        example: Jamie Rivera
+      email:
+        type: string
+        format: email
+        example: jamie@example.com
+      phone:
+        type: string
+        example: '555-123-4567'
+    example:
+      id: 1
+      name: Jamie Rivera
+      email: jamie@example.com
+      phone: '555-123-4567'
+  PaginationResponse:
+    type: object
+    properties:
+      limit:
+        type: integer
+        format: int32
+        example: 10
+      offset:
+        type: integer
+        format: int32
+        example: 0
+      count:
+        type: integer
+        format: int32
+        example: 3
+      total:
+        type: integer
+        format: int32
+        example: 24
+    example:
+      limit: 10
+      offset: 0
+      count: 3
+      total: 24
+  CustomerListResponse:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/CustomerResponse'
+      pagination:
+        $ref: '#/definitions/PaginationResponse'
+    example:
+      data:
+        - id: 1
+          name: Jamie Rivera
+          email: jamie@example.com
+          phone: '555-123-4567'
+      pagination:
+        limit: 10
+        offset: 0
+        count: 1
+        total: 1
+  MechanicCreateRequest:
+    type: object
+    required:
+      - name
+      - email
+      - phone
+      - salary
+    properties:
+      name:
+        type: string
+        example: Alex Torres
+      email:
+        type: string
+        format: email
+        example: alex@garage.com
+      phone:
+        type: string
+        example: '555-987-6543'
+      salary:
+        type: number
+        format: float
+        example: 42.5
+    example:
+      name: Alex Torres
+      email: alex@garage.com
+      phone: '555-987-6543'
+      salary: 42.5
+  MechanicResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+        example: 1
+      name:
+        type: string
+        example: Alex Torres
+      email:
+        type: string
+        format: email
+        example: alex@garage.com
+      phone:
+        type: string
+        example: '555-987-6543'
+      salary:
+        type: number
+        format: float
+        example: 42.5
+    example:
+      id: 1
+      name: Alex Torres
+      email: alex@garage.com
+      phone: '555-987-6543'
+      salary: 42.5
+  MechanicListResponse:
+    type: array
+    items:
+      $ref: '#/definitions/MechanicResponse'
+    example:
+      - id: 1
+        name: Alex Torres
+        email: alex@garage.com
+        phone: '555-987-6543'
+        salary: 42.5
+  MechanicRanking:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+        example: 1
+      name:
+        type: string
+        example: Alex Torres
+      email:
+        type: string
+        format: email
+        example: alex@garage.com
+      phone:
+        type: string
+        example: '555-987-6543'
+      salary:
+        type: number
+        format: float
+        example: 42.5
+      ticket_count:
+        type: integer
+        format: int32
+        example: 8
+    example:
+      id: 1
+      name: Alex Torres
+      email: alex@garage.com
+      phone: '555-987-6543'
+      salary: 42.5
+      ticket_count: 8
+  MechanicRankingListResponse:
+    type: array
+    items:
+      $ref: '#/definitions/MechanicRanking'
+    example:
+      - id: 1
+        name: Alex Torres
+        email: alex@garage.com
+        phone: '555-987-6543'
+        salary: 42.5
+        ticket_count: 8
+  InventoryCreateRequest:
+    type: object
+    required:
+      - name
+      - price
+    properties:
+      name:
+        type: string
+        example: Brake pads
+      price:
+        type: number
+        format: float
+        example: 89.99
+    example:
+      name: Brake pads
+      price: 89.99
+  InventoryResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+        example: 1
+      name:
+        type: string
+        example: Brake pads
+      price:
+        type: number
+        format: float
+        example: 89.99
+    example:
+      id: 1
+      name: Brake pads
+      price: 89.99
+  InventoryListResponse:
+    type: array
+    items:
+      $ref: '#/definitions/InventoryResponse'
+    example:
+      - id: 1
+        name: Brake pads
+        price: 89.99
+  ServiceTicketCreateRequest:
+    type: object
+    required:
+      - VIN
+      - service_date
+      - service_desc
+      - customer_id
+    properties:
+      VIN:
+        type: string
+        example: 1HGCM82633A004352
+      service_date:
+        type: string
+        example: '2026-07-05'
+      service_desc:
+        type: string
+        example: Brake replacement and inspection
+      customer_id:
+        type: integer
+        format: int32
+        example: 1
+    example:
+      VIN: 1HGCM82633A004352
+      service_date: '2026-07-05'
+      service_desc: Brake replacement and inspection
+      customer_id: 1
+  ServiceTicketResponse:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int32
+        example: 1
+      VIN:
+        type: string
+        example: 1HGCM82633A004352
+      service_date:
+        type: string
+        example: '2026-07-05'
+      service_desc:
+        type: string
+        example: Brake replacement and inspection
+      customer_id:
+        type: integer
+        format: int32
+        example: 1
+    example:
+      id: 1
+      VIN: 1HGCM82633A004352
+      service_date: '2026-07-05'
+      service_desc: Brake replacement and inspection
+      customer_id: 1
+  ServiceTicketListResponse:
+    type: array
+    items:
+      $ref: '#/definitions/ServiceTicketResponse'
+    example:
+      - id: 1
+        VIN: 1HGCM82633A004352
+        service_date: '2026-07-05'
+        service_desc: Brake replacement and inspection
+        customer_id: 1
+  TicketMechanicEditRequest:
+    type: object
+    properties:
+      add_ids:
+        type: array
+        items:
+          type: integer
+          format: int32
+        example:
+          - 2
+          - 3
+      remove_ids:
+        type: array
+        items:
+          type: integer
+          format: int32
+        example:
+          - 1
+    example:
+      add_ids:
+        - 2
+        - 3
+      remove_ids:
+        - 1
+  TicketMechanicEditResponse:
+    type: object
+    properties:
+      message:
+        type: string
+        example: Service ticket id 1 mechanics updated.
+      added_ids:
+        type: array
+        items:
+          type: integer
+          format: int32
+        example:
+          - 2
+          - 3
+      removed_ids:
+        type: array
+        items:
+          type: integer
+          format: int32
+        example:
+          - 1
+      missing_ids:
+        type: array
+        items:
+          type: integer
+          format: int32
+        example:
+          - 99
+    example:
+      message: Service ticket id 1 mechanics updated.
+      added_ids:
+        - 2
+        - 3
+      removed_ids:
+        - 1
+      missing_ids:
+        - 99

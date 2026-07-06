@@ -134,6 +134,10 @@ def delete_customer(customer_id, auth_customer_id):
     if not customer:
         return jsonify({"error": "Customer not found."}), 404
 
+    tickets = db.session.query(ServiceTicket).filter_by(customer_id=customer_id).all()
+    for ticket in tickets:
+        db.session.delete(ticket)
+
     db.session.delete(customer)
     db.session.commit()
 

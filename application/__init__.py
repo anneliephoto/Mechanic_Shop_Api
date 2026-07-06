@@ -1,12 +1,23 @@
 from flask import Flask, jsonify
+from flask_swagger_ui import get_swaggerui_blueprint
 
 from application.extensions import cache, db, limiter, ma
 from config import Config
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_object(Config)
+    if test_config:
+        app.config.update(test_config)
+
+    SWAGGER_URL = "/api/docs"
+    API_URL = "/static/swagger.yaml"
+    swaggerui_blueprint = get_swaggerui_blueprint(
+        SWAGGER_URL,
+        API_URL,
+        config={"app_name": "Mechanic Shop API"},
+    )
 
     db.init_app(app)
     ma.init_app(app)
@@ -22,6 +33,7 @@ def create_app():
     app.register_blueprint(inventory_bp, url_prefix="/inventory")
     app.register_blueprint(mechanics_bp, url_prefix="/mechanics")
     app.register_blueprint(service_tickets_bp, url_prefix="/service_tickets")
+    app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
     @app.errorhandler(429)
     def handle_rate_limit(error):
