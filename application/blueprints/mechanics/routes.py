@@ -25,7 +25,7 @@ def create_mechanic():
 
 
 @mechanics_bp.route("", methods=["GET"])
-@cache.cached(timeout=60)
+@cache.memoize(timeout=60)
 def get_mechanics():
     # Cache the mechanic list because it is read often and changes less frequently.
     mechanics = db.session.query(Mechanic).all()
