@@ -61,6 +61,24 @@ def create_app(config_name_or_overrides=None):
     def home():
         return redirect("/api/docs")
 
+    @app.route("/debug/db")
+    def debug_db():
+        if not app.config.get("ENABLE_DB_DEBUG", False):
+            return jsonify({"error": "Not found."}), 404
+
+        db_url = db.engine.url
+        return (
+            jsonify(
+                {
+                    "driver": db_url.drivername,
+                    "host": db_url.host,
+                    "port": db_url.port,
+                    "database": db_url.database,
+                }
+            ),
+            200,
+        )
+
     with app.app_context():
         db.create_all()
 

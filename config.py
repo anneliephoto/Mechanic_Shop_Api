@@ -10,6 +10,7 @@ class Config:
     CACHE_TYPE = "SimpleCache"
     CACHE_DEFAULT_TIMEOUT = 60
     SECRET_KEY = os.environ.get("SECRET_KEY", "super secret secrets")
+    ENABLE_DB_DEBUG = os.environ.get("ENABLE_DB_DEBUG", "false").lower() == "true"
 
 
 class ProductionConfig(Config):
